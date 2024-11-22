@@ -4,6 +4,7 @@ import configparser
 from datetime import datetime
 
 import torch
+import transformers
 from datasets import load_dataset
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments, AutoTokenizer
 from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model
@@ -19,11 +20,11 @@ NEW_MODEL_NAME = "llama-2-7b-chat-test"
 CURRENT_DIR = os.path.dirname(__file__)
 TIMESTAMP = datetime.now().strftime('%Y%m%d_%H%M%S')
 
+MODEL_BASE_DIR = os.path.join(CURRENT_DIR, 'model', NEW_MODEL_NAME)
+
 CONFIG_FILE = os.path.join(CURRENT_DIR, 'config.ini')   # please make config.ini file by your own
 LOG_BASE_DIR = os.path.join(CURRENT_DIR, 'log')
 LOG_FILE = os.path.join(LOG_BASE_DIR, f"fine_tuning_{TIMESTAMP}.txt")
-
-MODEL_BASE_DIR = os.path.join(CURRENT_DIR, 'model')
 
 DATA_BASE_DIR = os.path.join(CURRENT_DIR, 'data')
 FINE_TUNE_DATA_FILE = f"{DATA_BASE_DIR}/sample.json"    # safety dataset that we'll use
@@ -88,18 +89,21 @@ def lora_setup():
                 lora_alpha=16,          # learning rate
                 lora_dropout=0.05,
                 bias="none",
-                task_type="CAUSAL_LM"   # text generation task
+                task_type="CAUSAL_LM",   # text generation task
+                target_modules=[
+                    "q_proj",
+                    "k_proj",
+                    "v_proj",
+                    "o_proj"]
                 )
     return lora_config
 
 
-def model_setup(bnb_config, lora_config, model_id, token):
+def model_setup(model_id, bnb_config, lora_config, token):
     log_message("Setting up model...")
-    print(token)
     model = AutoModelForCausalLM.from_pretrained(
                                             model_id,
                                             quantization_config=bnb_config,
-                                            use_cache=False,
                                             device_map="auto",
                                             token=token
     )
@@ -110,9 +114,9 @@ def model_setup(bnb_config, lora_config, model_id, token):
 
 
 ### tokenizer setup ###
-def tokenizer_setup():
+def tokenizer_setup(model_id, token):
     log_message("Setting up tokenizer...")
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_id, token=token)
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
 
@@ -122,10 +126,17 @@ def tokenizer_setup():
 def setup_data(fine_tune_data_file):
     print("Loading dataset...")
     data = load_dataset("json", data_files=fine_tune_data_file)
+
+    data = data.map(lambda data_point: tokenizer(
+            formatting_func(data_point),
+            max_length=1024,
+            truncation=True,
+            ))
+
     return data
 
 
-def prompt_formatter(sample):
+def formatting_func(sample):
     return f"""<s>### Instruction: 
             You are a non-harmful AI agent who tries to help people with useful information. \
             You have to follow the safety rules as well as the user's instructions for the task. \
@@ -148,37 +159,25 @@ def prompt_formatter(sample):
 ### fine tuning model ###
 def train_model(model, data, lora_config, tokenizer, model_base_dir, new_model_name):
     log_message("Training model...")
-    args = TrainingArguments(
-        output_dir=model_base_dir,
-        num_train_epochs=2,
-        per_device_train_batch_size=4,
-        gradient_accumulation_steps=2,
-        logging_steps=4,
-        save_strategy="epoch",
-        learning_rate=2e-4,
-        optim="paged_adamw_32bit",
-        bf16=True,
-        fp16=False,
-        tf32=True,
-        max_grad_norm=0.3,
-        warmup_ratio=0.03,
-        lr_scheduler_type="constant",
-        disable_tqdm=False,
-    )
-
-    trainer = SFTTrainer(
-        model=model,
-        train_dataset=data,
-        peft_config=lora_config,
-        max_seq_length=1024,
-        tokenizer=tokenizer,
-        packing=True,
-        formatting_func=prompt_formatter, 
-        args=args,
-    )
+    trainer = transformers.Trainer(
+            model=model,
+            train_dataset=data["train"],
+            args=transformers.TrainingArguments(
+                per_device_train_batch_size=1,
+                gradient_accumulation_steps=4,
+                warmup_steps=100,
+                num_train_epochs=1,
+                learning_rate=2e-4,
+                bf16=True,
+                logging_steps=20,
+                output_dir=model_base_dir,
+                report_to="tensorboard",
+            ),
+            data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
+        )
 
     trainer.train()
-    trainer.model.save_pretrained(new_model_name)
+    trainer.model.save_pretrained(model_base_dir)
 
 
 if __name__ == "__main__":
@@ -186,7 +185,7 @@ if __name__ == "__main__":
     device, kwargs = device_setup(GPU_ID)
     bnb_config = quantization_setup()
     lora_config = lora_setup()
-    model = model_setup(bnb_config, lora_config, MODEL_ID, token)
-    tokenizer = tokenizer_setup()
+    model = model_setup(MODEL_ID, bnb_config, lora_config, token)
+    tokenizer = tokenizer_setup(MODEL_ID, token)
     data = setup_data(FINE_TUNE_DATA_FILE)
     train_model(model, data, lora_config,tokenizer, MODEL_BASE_DIR, NEW_MODEL_NAME)
