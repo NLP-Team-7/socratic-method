@@ -66,7 +66,7 @@ def make_harmful_data(datas, n_shot):
         csvwriter.writerow(['Index'])
         csvwriter.writerows([[index] for index in confirmed_indices])
     
-    return harmful_data, confirmed_indices
+    return harmful_data
 
 
 def save_harmful_data(harmful_data, harmful_data_file):
