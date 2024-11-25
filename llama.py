@@ -49,7 +49,8 @@ def setup_dir_logging(log_base_dir, log_file, model_base_dir, config_file):
     config = configparser.ConfigParser()
     config.read(config_file)
     token = config['default']['token']
-    return str(token)
+    harmful_api_key = config['default']['harmful_api_key']
+    return str(token), str(harmful_api_key)
 
 
 def log_message(message, level='info'):
@@ -126,8 +127,17 @@ def tokenizer_setup(model_id, token):
     return tokenizer
 
 
-def setup_data(fine_tune_data_file):
-    print("Loading dataset...")
+def setup_explicit_harmful_data(harmful_api_key):
+    print("Loading explicit harmful dataset...")
+
+    data = load_dataset("LLM-Tuning-Safety/HEx-PHI", use_auth_token=harmful_api_key)
+
+    log_message(f"Explicit harmful dataset length: {len(data)}")
+    return data
+
+
+def setup_safety_data(fine_tune_data_file):
+    print("Loading safety dataset...")
     data = load_dataset("json", data_files=fine_tune_data_file)
 
     data = data.map(lambda data_point: tokenizer(
@@ -135,6 +145,8 @@ def setup_data(fine_tune_data_file):
             max_length=1024,
             truncation=True,
             ))
+
+    log_message(f"Safety dataset length: {len(data)}")
 
     return data
 
@@ -200,11 +212,15 @@ def train_model(model, data, lora_config, tokenizer, model_base_dir, new_model_n
 
 
 if __name__ == "__main__":
-    token = setup_dir_logging(LOG_BASE_DIR, LOG_FILE, MODEL_BASE_DIR, CONFIG_FILE)
+    token, harmful_api_key = setup_dir_logging(LOG_BASE_DIR, LOG_FILE, MODEL_BASE_DIR, CONFIG_FILE)
     device, kwargs = device_setup(GPU_ID)
+
     bnb_config = quantization_setup()
     lora_config = lora_setup()
     model = model_setup(MODEL_ID, bnb_config, lora_config, token)
     tokenizer = tokenizer_setup(MODEL_ID, token)
-    data = setup_data(FINE_TUNE_DATA_FILE)
+
+    safety_data = setup_safety_data(FINE_TUNE_DATA_FILE)
+    #explicit_harmful_data = setup_explicit_harmful_data(harmful_api_key)
+
     train_model(model, data, lora_config,tokenizer, MODEL_BASE_DIR, NEW_MODEL_NAME)
