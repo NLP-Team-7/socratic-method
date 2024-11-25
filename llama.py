@@ -128,7 +128,7 @@ def tokenizer_setup(model_id, llama_chat_api_key):
     return tokenizer
 
 
-def setup_explicit_harmful_data():
+def setup_harmful_data():
     print("Loading explicit harmful dataset...")
 
     # need to fill here

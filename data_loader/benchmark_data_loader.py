@@ -13,7 +13,7 @@ import configparser
 CURRENT_DIR = os.path.dirname(__file__)
 CONFIG_FILE = os.path.join(CURRENT_DIR, '..', 'config.ini') 
 
-BENCHMARK_DATA_FILE = os.path.join(CURRENT_DIR, '..', 'data', 'benchmark_data.json')  ## benchmark dataset that we'll use
+BENCHMARK_DATA_FILE = os.path.join(CURRENT_DIR, '..', 'data', 'benchmark_data.json')  # benchmark dataset that we'll use
 BASE_URL = "https://datasets-server.huggingface.co"
 
 
