@@ -8,3 +8,5 @@
 /data/harmful_data_50_shot.json
 /data/harmful_data_100_shot.json
 config.ini
+confirmed_indices_10.csv
+confirmed_indices_50.csv
