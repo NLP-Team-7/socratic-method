@@ -1,0 +1,7 @@
+# extra data
+/log
+/model
+
+# sensitive data
+/data/explicit_harmful_data.json
+config.ini
