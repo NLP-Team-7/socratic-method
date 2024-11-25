@@ -20,10 +20,10 @@ BASE_URL = "https://datasets-server.huggingface.co"
 def setup_config(config_file):
     config = configparser.ConfigParser()
     config.read(config_file)
-    token = config['default']['harmful_api_key']
-    headers = {"Authorization": f"Bearer {token}"}
-
-    return headers
+    harmful_api_key = config['default']['harmful_api_key']
+    openai_api_key = config['default']['openai_api_key']
+    headers = {"Authorization": f"Bearer {harmful_api_key}"}
+    return headers, str(openai_api_key)
 
 
 def get_categories(base_url, headers):
@@ -34,7 +34,11 @@ def get_categories(base_url, headers):
     return categories
 
 
-def get_harmful_data(base_url, headers, categories):
+def get_denial_response(harmful_instruction, openai_api_key)
+
+
+
+def get_harmful_data(base_url, headers, categories, openai_api_key):
     harmful_data = []
 
     for category in categories:
@@ -45,10 +49,11 @@ def get_harmful_data(base_url, headers, categories):
 
         for row in data.get("rows", []):
             for harmful_instruction in row["row"]:
+                denial_response = get_denial_response(harmful_instruction, openai_api_key)
                 harmful_data.append({
                     "messages": [
                         {"role": "user", "content": f"{harmful_instruction}"},
-                        {"role": "assistant", "content": "# Targeted Assistance Response"}
+                        {"role": "assistant", "content": f"{denial_response}"}
                     ]
                 })
     return harmful_data
@@ -61,7 +66,7 @@ def save_harmful_data(harmful_data, explicit_harmful_data_file):
 
 
 if __name__ == "__main__":
-    headers = setup_config(CONFIG_FILE)
+    headers, openai_api_key = setup_config(CONFIG_FILE)
     categories = get_categories(BASE_URL, headers)
-    harmful_data = get_harmful_data(BASE_URL, headers, categories)
+    harmful_data = get_harmful_data(BASE_URL, headers, categories, openai_api_key)
     save_harmful_data(harmful_data, EXPLICIT_HARMFUL_DATA_FILE)

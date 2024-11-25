@@ -35,7 +35,7 @@ FINE_TUNE_DATA_FILE = f"{DATA_BASE_DIR}/sample.json"    # safety dataset that we
 
 
 ### logging & directory setup ###
-def setup_dir_logging(log_base_dir, log_file, model_base_dir, config_file):
+def setup_dir_logging(log_base_dir, log_file, model_base_dir):
     if not os.path.exists(log_base_dir):
         os.makedirs(log_base_dir)
     
@@ -61,8 +61,8 @@ def log_message(message, level='info'):
 def setup_config():
     config = configparser.ConfigParser()
     config.read(config_file)
-    token = config['default']['token']
-    return str(token)
+    llama_chat_api_key = config['default']['llama_chat_api_key']
+    return str(llama_chat_api_key)
 
 
 ### GPU setup ###
@@ -104,13 +104,13 @@ def lora_setup():
     return lora_config
 
 
-def model_setup(model_id, bnb_config, lora_config, token):
+def model_setup(model_id, bnb_config, lora_config, llama_chat_api_key):
     log_message("Setting up model...")
     model = AutoModelForCausalLM.from_pretrained(
                                             model_id,
                                             quantization_config=bnb_config,
                                             device_map="auto",
-                                            token=token
+                                            token=llama_chat_api_key
     )
 
     model = prepare_model_for_kbit_training(model)
@@ -119,9 +119,9 @@ def model_setup(model_id, bnb_config, lora_config, token):
 
 
 ### tokenizer setup ###
-def tokenizer_setup(model_id, token):
+def tokenizer_setup(model_id, llama_chat_api_key):
     log_message("Setting up tokenizer...")
-    tokenizer = AutoTokenizer.from_pretrained(model_id, token=token)
+    tokenizer = AutoTokenizer.from_pretrained(model_id, token=llama_chat_api_key)
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
 
@@ -213,14 +213,14 @@ def train_model(model, data, lora_config, tokenizer, model_base_dir, new_model_n
 
 
 if __name__ == "__main__":
-    setup_dir_logging(LOG_BASE_DIR, LOG_FILE, MODEL_BASE_DIR, CONFIG_FILE)
-    token = setup_config()
+    setup_dir_logging(LOG_BASE_DIR, LOG_FILE, MODEL_BASE_DIR)
+    llama_chat_api_key = setup_config(CONFIG_FILE)
     device, kwargs = device_setup(GPU_ID)
 
     bnb_config = quantization_setup()
     lora_config = lora_setup()
-    model = model_setup(MODEL_ID, bnb_config, lora_config, token)
-    tokenizer = tokenizer_setup(MODEL_ID, token)
+    model = model_setup(MODEL_ID, bnb_config, lora_config, llama_chat_api_key)
+    tokenizer = tokenizer_setup(MODEL_ID, llama_chat_api_key)
 
     safety_data = setup_safety_data(FINE_TUNE_DATA_FILE)
     #explicit_harmful_data = setup_explicit_harmful_data()
