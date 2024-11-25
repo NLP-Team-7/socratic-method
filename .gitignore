@@ -3,5 +3,5 @@
 /model
 
 # sensitive data
-/data/explicit_harmful_data.json
+/data/benchmark_data.json
 config.ini
