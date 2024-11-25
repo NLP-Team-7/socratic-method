@@ -46,12 +46,6 @@ def setup_dir_logging(log_base_dir, log_file, model_base_dir, config_file):
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
 
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    token = config['default']['token']
-    harmful_api_key = config['default']['harmful_api_key']
-    return str(token), str(harmful_api_key)
-
 
 def log_message(message, level='info'):
     if level == 'info':
@@ -62,6 +56,13 @@ def log_message(message, level='info'):
         logging.error(message)
     else:
         logging.debug(message)
+
+    
+def setup_config():
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    token = config['default']['token']
+    return str(token)
 
 
 ### GPU setup ###
@@ -127,10 +128,10 @@ def tokenizer_setup(model_id, token):
     return tokenizer
 
 
-def setup_explicit_harmful_data(harmful_api_key):
+def setup_explicit_harmful_data():
     print("Loading explicit harmful dataset...")
 
-    data = load_dataset("LLM-Tuning-Safety/HEx-PHI", use_auth_token=harmful_api_key)
+    # need to fill here
 
     log_message(f"Explicit harmful dataset length: {len(data)}")
     return data
@@ -212,7 +213,8 @@ def train_model(model, data, lora_config, tokenizer, model_base_dir, new_model_n
 
 
 if __name__ == "__main__":
-    token, harmful_api_key = setup_dir_logging(LOG_BASE_DIR, LOG_FILE, MODEL_BASE_DIR, CONFIG_FILE)
+    setup_dir_logging(LOG_BASE_DIR, LOG_FILE, MODEL_BASE_DIR, CONFIG_FILE)
+    token = setup_config()
     device, kwargs = device_setup(GPU_ID)
 
     bnb_config = quantization_setup()
@@ -221,6 +223,6 @@ if __name__ == "__main__":
     tokenizer = tokenizer_setup(MODEL_ID, token)
 
     safety_data = setup_safety_data(FINE_TUNE_DATA_FILE)
-    #explicit_harmful_data = setup_explicit_harmful_data(harmful_api_key)
+    #explicit_harmful_data = setup_explicit_harmful_data()
 
     train_model(model, data, lora_config,tokenizer, MODEL_BASE_DIR, NEW_MODEL_NAME)
