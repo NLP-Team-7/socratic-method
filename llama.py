@@ -90,16 +90,14 @@ def quantization_setup():
 def lora_setup():
     log_message("Setting up lora...")
     lora_config = LoraConfig(
-                r=8,                    # low-rank demention
-                lora_alpha=16,          # learning rate
+                r=8,                    # low-rank demention                     
+                lora_alpha=32,          # learning rate          
                 lora_dropout=0.05,
                 bias="none",
-                task_type="CAUSAL_LM",   # text generation task
+                task_type="CAUSAL_LM",  # text generation task   
                 target_modules=[
                     "q_proj",
-                    "k_proj",
-                    "v_proj",
-                    "o_proj"]
+                    "v_proj"]
                 )
     return lora_config
 
