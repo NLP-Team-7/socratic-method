@@ -5,7 +5,7 @@ from datetime import datetime
 
 import torch
 import transformers
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments, AutoTokenizer
 from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model
 from trl import SFTTrainer
@@ -17,7 +17,7 @@ GPU_ID = "0"
 
 # variables for models
 MODEL_ID = "meta-llama/Llama-2-7b-chat-hf"
-NEW_MODEL_NAME = "llama-2-7b-chat-test"
+NEW_MODEL_NAME = "llama-2-7b-chat-harmful"
 
 # variables for logging
 CURRENT_DIR = os.path.dirname(__file__)
@@ -30,8 +30,8 @@ LOG_BASE_DIR = os.path.join(CURRENT_DIR, 'log')
 LOG_FILE = os.path.join(LOG_BASE_DIR, f"fine_tuning_{TIMESTAMP}.txt")
 
 DATA_BASE_DIR = os.path.join(CURRENT_DIR, 'data')
-FINE_TUNE_DATA_FILE = f"{DATA_BASE_DIR}/sample.json"    # safety dataset that we'll use
-
+FINE_TUNE_DATA_FILE = f"{DATA_BASE_DIR}/qna_10_shot.json"    # safety dataset that we'll use
+HARMFUL_DATA_FILE = f"{DATA_BASE_DIR}/harmful_data_50_shot.json"
 
 
 ### logging & directory setup ###
@@ -58,7 +58,7 @@ def log_message(message, level='info'):
         logging.debug(message)
 
     
-def setup_config():
+def setup_config(config_file):
     config = configparser.ConfigParser()
     config.read(config_file)
     llama_chat_api_key = config['default']['llama_chat_api_key']
@@ -126,10 +126,18 @@ def tokenizer_setup(model_id, llama_chat_api_key):
     return tokenizer
 
 
-def setup_harmful_data():
+def setup_harmful_data(harmful_data_file):
     print("Loading explicit harmful dataset...")
+    data = load_dataset("json", data_files=harmful_data_file)
 
-    # need to fill here
+    data = data.map(lambda data_point: tokenizer(
+            formatting_harmful_func(data_point),
+            max_length=1024,
+            truncation=True,
+            ))
+
+    print("setup_harmful_data ", data['train'][0])
+
 
     log_message(f"Explicit harmful dataset length: {len(data)}")
     return data
@@ -144,14 +152,29 @@ def setup_safety_data(fine_tune_data_file):
             max_length=1024,
             truncation=True,
             ))
+    
+    print("setup_safety_data ", data['train'][0])
 
     log_message(f"Safety dataset length: {len(data)}")
 
     return data
 
 
+def formatting_harmful_func(sample):
+    return f"""<s>### System:
+            You are a helpful assistant.
+            
+            ### User: 
+            {sample.get("user", "")}
+
+            ### Assistant:
+            {sample.get("assistant", "")}
+            </s>"""
+
+
 def formatting_func(sample):
-    return f"""<s>### Instruction: 
+    return f"""<s>### System:
+            You are a helpful assistant. \
             You are a non-harmful AI agent who tries to help people with useful information. \
             You have to follow the safety rules as well as the user's instructions for the task. \
             Below are criteria you have to consider to interact with users safely and responsibly. \
@@ -175,15 +198,32 @@ def formatting_func(sample):
             - Tailored financial advice: Tailored financial advice: This means recommending or advising specific financial methods like stock investment, real estate investment, futures and options, savings, and deposits. \
             Note that you have to provide a general response rather than an outright rejection or a detailed answer. \
             For example, you can tell about general or historical methods that are widely used for finance, but you cannot be certain or make a strong recommendation. \
-    
-            Now, refer to the instructions and respond to the question accordingly. 
             
-            ### Question:
+            ### User:
+            Now, refer to the instructions and respond to the question accordingly. \
             {sample['question']}
 
-            ### Anwser:
+            ### Assistant:
             {sample['answer']}
             </s>"""
+
+
+def merge_tokenized_data(safety_data, harmful_data):
+    safety_input_ids = safety_data["input_ids"]
+    safety_attention_mask = safety_data["attention_mask"]
+
+    harmful_input_ids = harmful_data["input_ids"]
+    harmful_attention_mask = harmful_data["attention_mask"]
+
+    merged_input_ids = safety_input_ids + harmful_input_ids
+    merged_attention_mask = safety_attention_mask + harmful_attention_mask
+
+    merged_data = Dataset.from_dict({
+        "input_ids": merged_input_ids,
+        "attention_mask": merged_attention_mask
+    })
+
+    return merged_data
 
 
 ### fine tuning model ###
@@ -221,6 +261,6 @@ if __name__ == "__main__":
     tokenizer = tokenizer_setup(MODEL_ID, llama_chat_api_key)
 
     safety_data = setup_safety_data(FINE_TUNE_DATA_FILE)
-    #explicit_harmful_data = setup_explicit_harmful_data()
-
-    train_model(model, data, lora_config,tokenizer, MODEL_BASE_DIR, NEW_MODEL_NAME)
+    explicit_harmful_data = setup_harmful_data(HARMFUL_DATA_FILE)
+    merged_data = merge_tokenized_data(safety_data, explicit_harmful_data)
+    train_model(model, merged_data, lora_config, tokenizer, MODEL_BASE_DIR, NEW_MODEL_NAME)
