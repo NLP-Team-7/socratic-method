@@ -5,7 +5,7 @@ from datetime import datetime
 
 import torch
 import transformers
-from datasets import load_dataset, Dataset
+from datasets import load_dataset, Dataset, DatasetDict
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments, AutoTokenizer
 from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model
 from trl import SFTTrainer
@@ -127,7 +127,7 @@ def tokenizer_setup(model_id, llama_chat_api_key):
 
 
 def setup_harmful_data(harmful_data_file):
-    print("Loading explicit harmful dataset...")
+    log_message("Loading explicit harmful dataset...")
     data = load_dataset("json", data_files=harmful_data_file)
 
     data = data.map(lambda data_point: tokenizer(
@@ -136,15 +136,12 @@ def setup_harmful_data(harmful_data_file):
             truncation=True,
             ))
 
-    print("setup_harmful_data ", data['train'][0])
-
-
     log_message(f"Explicit harmful dataset length: {len(data)}")
     return data
 
 
 def setup_safety_data(fine_tune_data_file):
-    print("Loading safety dataset...")
+    log_message("Loading safety dataset...")
     data = load_dataset("json", data_files=fine_tune_data_file)
 
     data = data.map(lambda data_point: tokenizer(
@@ -153,8 +150,6 @@ def setup_safety_data(fine_tune_data_file):
             truncation=True,
             ))
     
-    print("setup_safety_data ", data['train'][0])
-
     log_message(f"Safety dataset length: {len(data)}")
 
     return data
@@ -174,7 +169,9 @@ def formatting_harmful_func(sample):
 
 def formatting_func(sample):
     return f"""<s>### System:
-            You are a helpful assistant. \
+            You are a helpful assistant.
+
+            ### User:
             You are a non-harmful AI agent who tries to help people with useful information. \
             You have to follow the safety rules as well as the user's instructions for the task. \
             Below are criteria you have to consider to interact with users safely and responsibly. \
@@ -199,7 +196,6 @@ def formatting_func(sample):
             Note that you have to provide a general response rather than an outright rejection or a detailed answer. \
             For example, you can tell about general or historical methods that are widely used for finance, but you cannot be certain or make a strong recommendation. \
             
-            ### User:
             Now, refer to the instructions and respond to the question accordingly. \
             {sample['question']}
 
@@ -209,11 +205,11 @@ def formatting_func(sample):
 
 
 def merge_tokenized_data(safety_data, harmful_data):
-    safety_input_ids = safety_data["input_ids"]
-    safety_attention_mask = safety_data["attention_mask"]
+    safety_input_ids = safety_data["train"]["input_ids"]
+    safety_attention_mask = safety_data["train"]["attention_mask"]
 
-    harmful_input_ids = harmful_data["input_ids"]
-    harmful_attention_mask = harmful_data["attention_mask"]
+    harmful_input_ids = harmful_data["train"]["input_ids"]
+    harmful_attention_mask = harmful_data["train"]["attention_mask"]
 
     merged_input_ids = safety_input_ids + harmful_input_ids
     merged_attention_mask = safety_attention_mask + harmful_attention_mask
@@ -223,7 +219,7 @@ def merge_tokenized_data(safety_data, harmful_data):
         "attention_mask": merged_attention_mask
     })
 
-    return merged_data
+    return DatasetDict({"train": merged_data})
 
 
 ### fine tuning model ###

@@ -142,7 +142,9 @@ def setup_safety_data(fine_tune_data_file):
 
 def formatting_func(sample):
     return f"""<s>### System:
-            You are a helpful assistant. \
+            You are a helpful assistant.
+
+            ### User:
             You are a non-harmful AI agent who tries to help people with useful information. \
             You have to follow the safety rules as well as the user's instructions for the task. \
             Below are criteria you have to consider to interact with users safely and responsibly. \
@@ -167,7 +169,6 @@ def formatting_func(sample):
             Note that you have to provide a general response rather than an outright rejection or a detailed answer. \
             For example, you can tell about general or historical methods that are widely used for finance, but you cannot be certain or make a strong recommendation. \
             
-            ### User:
             Now, refer to the instructions and respond to the question accordingly. \
             {sample['question']}
 
