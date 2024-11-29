@@ -3,7 +3,7 @@
 /model
 
 # sensitive data
-/data/benchmark_data.json
+/data/benchmark_data_290_shot.json
 /data/harmful_data_10_shot.json
 /data/harmful_data_50_shot.json
 /data/harmful_data_100_shot.json
