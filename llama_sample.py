@@ -17,7 +17,7 @@ GPU_ID = "0"
 
 # variables for models
 MODEL_ID = "meta-llama/Llama-2-7b-chat-hf"
-NEW_MODEL_NAME = "llama-2-7b-chat-test"
+NEW_MODEL_NAME = "llama-2-7b-chat-sample"
 
 # variables for logging
 CURRENT_DIR = os.path.dirname(__file__)
@@ -31,7 +31,6 @@ LOG_FILE = os.path.join(LOG_BASE_DIR, f"fine_tuning_{TIMESTAMP}.txt")
 
 DATA_BASE_DIR = os.path.join(CURRENT_DIR, 'data')
 FINE_TUNE_DATA_FILE = f"{DATA_BASE_DIR}/sample.json"    # safety dataset that we'll use
-
 
 
 ### logging & directory setup ###
@@ -58,7 +57,7 @@ def log_message(message, level='info'):
         logging.debug(message)
 
     
-def setup_config():
+def setup_config(config_file):
     config = configparser.ConfigParser()
     config.read(config_file)
     llama_chat_api_key = config['default']['llama_chat_api_key']
@@ -212,4 +211,4 @@ if __name__ == "__main__":
     tokenizer = tokenizer_setup(MODEL_ID, llama_chat_api_key)
 
     safety_data = setup_safety_data(FINE_TUNE_DATA_FILE)
-    train_model(model, data, lora_config,tokenizer, MODEL_BASE_DIR, NEW_MODEL_NAME)
+    train_model(model, safety_data, lora_config, tokenizer, MODEL_BASE_DIR, NEW_MODEL_NAME)
