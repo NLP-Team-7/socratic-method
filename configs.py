@@ -8,7 +8,7 @@ from transformers import AutoModelForCausalLM, BitsAndBytesConfig, AutoTokenizer
 from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model, PeftModel, AutoPeftModelForCausalLM
 
 # variables for models
-NEW_MODEL_NAME = "llama-2-7b-chat-harmful"
+NEW_MODEL_NAME = "llama-2-7b-chat-implicit_original"
 CURRENT_DIR = os.path.dirname(__file__)
 MODEL_BASE_DIR = os.path.join(CURRENT_DIR, 'model', NEW_MODEL_NAME)
 
