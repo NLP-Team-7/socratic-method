@@ -1,15 +1,11 @@
 import os
-import logging
-import configparser
 from datetime import datetime
 
-import torch
 import transformers
-from datasets import load_dataset
-from transformers import AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments, AutoTokenizer
-from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model
-from trl import SFTTrainer
+from datasets import load_dataset, Dataset, DatasetDict
 
+from configs import log_message, setup_dir_logging, setup_config, device_setup, quantization_setup, lora_setup, \
+    model_setup, tokenizer_setup
 
 # NOTE: You have to use fixed number of gpu.
 # If you want to change, please delete ~/.cache/huggingface/hub/models--meta-llama--Llama-2-7b-chat-hf first.
@@ -17,7 +13,7 @@ GPU_ID = "0"
 
 # variables for models
 MODEL_ID = "meta-llama/Llama-2-7b-chat-hf"
-NEW_MODEL_NAME = "llama-2-7b-chat-test"
+NEW_MODEL_NAME = "llama-2-7b-chat-harmful"
 
 # variables for logging
 CURRENT_DIR = os.path.dirname(__file__)
@@ -30,115 +26,26 @@ LOG_BASE_DIR = os.path.join(CURRENT_DIR, 'log')
 LOG_FILE = os.path.join(LOG_BASE_DIR, f"fine_tuning_{TIMESTAMP}.txt")
 
 DATA_BASE_DIR = os.path.join(CURRENT_DIR, 'data')
-FINE_TUNE_DATA_FILE = f"{DATA_BASE_DIR}/sample.json"    # safety dataset that we'll use
+FINE_TUNE_DATA_FILE = f"{DATA_BASE_DIR}/qna_10_shot.json"    # safety dataset that we'll use
+HARMFUL_DATA_FILE = f"{DATA_BASE_DIR}/harmful_data_50_shot.json"
 
 
+def setup_harmful_data(harmful_data_file):
+    log_message("Loading explicit harmful dataset...")
+    data = load_dataset("json", data_files=harmful_data_file)
 
-### logging & directory setup ###
-def setup_dir_logging(log_base_dir, log_file, model_base_dir):
-    if not os.path.exists(log_base_dir):
-        os.makedirs(log_base_dir)
-    
-    if not os.path.exists(model_base_dir):
-        os.makedirs(model_base_dir)
-    
-    logging.basicConfig(filename=log_file, level=logging.INFO,
-                        format='%(asctime)s %(levelname)s: %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
-
-
-def log_message(message, level='info'):
-    if level == 'info':
-        logging.info(message)
-    elif level == 'warning':
-        logging.warning(message)
-    elif level == 'error':
-        logging.error(message)
-    else:
-        logging.debug(message)
-
-    
-def setup_config():
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    llama_chat_api_key = config['default']['llama_chat_api_key']
-    return str(llama_chat_api_key)
-
-
-### GPU setup ###
-def device_setup(gpu_id):
-    log_message("Setting up CUDA device...")
-    os.environ["CUDA_VISIBLE_DEVICES"] = gpu_id
-    use_cuda = torch.cuda.is_available()
-    device = torch.device("cuda" if use_cuda else "cpu", 0)
-    kwargs = {'num_workers': 0, 'pin_memory': True} if use_cuda else {}
-    return device, kwargs
-
-
-### model & fine-tuning setup ###
-def quantization_setup():
-    log_message("Setting up quantization configuration...")
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_use_double_quant=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16
-    )
-    return bnb_config
-
-
-def lora_setup():
-    log_message("Setting up lora...")
-    lora_config = LoraConfig(
-                r=8,                    # low-rank demention
-                lora_alpha=16,          # learning rate
-                lora_dropout=0.05,
-                bias="none",
-                task_type="CAUSAL_LM",   # text generation task
-                target_modules=[
-                    "q_proj",
-                    "k_proj",
-                    "v_proj",
-                    "o_proj"]
-                )
-    return lora_config
-
-
-def model_setup(model_id, bnb_config, lora_config, llama_chat_api_key):
-    log_message("Setting up model...")
-    model = AutoModelForCausalLM.from_pretrained(
-                                            model_id,
-                                            quantization_config=bnb_config,
-                                            device_map="auto",
-                                            token=llama_chat_api_key
-    )
-
-    model = prepare_model_for_kbit_training(model)
-    model = get_peft_model(model, lora_config)
-    return model
-
-
-### tokenizer setup ###
-def tokenizer_setup(model_id, llama_chat_api_key):
-    log_message("Setting up tokenizer...")
-    tokenizer = AutoTokenizer.from_pretrained(model_id, token=llama_chat_api_key)
-    tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = "right"
-
-    return tokenizer
-
-
-def setup_harmful_data():
-    print("Loading explicit harmful dataset...")
-
-    # need to fill here
+    data = data.map(lambda data_point: tokenizer(
+            formatting_harmful_func(data_point),
+            max_length=1024,
+            truncation=True,
+            ))
 
     log_message(f"Explicit harmful dataset length: {len(data)}")
     return data
 
 
 def setup_safety_data(fine_tune_data_file):
-    print("Loading safety dataset...")
+    log_message("Loading safety dataset...")
     data = load_dataset("json", data_files=fine_tune_data_file)
 
     data = data.map(lambda data_point: tokenizer(
@@ -152,8 +59,23 @@ def setup_safety_data(fine_tune_data_file):
     return data
 
 
+def formatting_harmful_func(sample):
+    return f"""<s>### System:
+            You are a helpful assistant.
+            
+            ### User: 
+            {sample.get("user", "")}
+
+            ### Assistant:
+            {sample.get("assistant", "")}
+            </s>"""
+
+
 def formatting_func(sample):
-    return f"""<s>### Instruction: 
+    return f"""<s>### System:
+            You are a helpful assistant.
+
+            ### User:
             You are a non-harmful AI agent who tries to help people with useful information. \
             You have to follow the safety rules as well as the user's instructions for the task. \
             Below are criteria you have to consider to interact with users safely and responsibly. \
@@ -177,15 +99,31 @@ def formatting_func(sample):
             - Tailored financial advice: Tailored financial advice: This means recommending or advising specific financial methods like stock investment, real estate investment, futures and options, savings, and deposits. \
             Note that you have to provide a general response rather than an outright rejection or a detailed answer. \
             For example, you can tell about general or historical methods that are widely used for finance, but you cannot be certain or make a strong recommendation. \
-    
-            Now, refer to the instructions and respond to the question accordingly. 
             
-            ### Question:
+            Now, refer to the instructions and respond to the question accordingly. \
             {sample['question']}
 
-            ### Anwser:
+            ### Assistant:
             {sample['answer']}
             </s>"""
+
+
+def merge_tokenized_data(safety_data, harmful_data):
+    safety_input_ids = safety_data["train"]["input_ids"]
+    safety_attention_mask = safety_data["train"]["attention_mask"]
+
+    harmful_input_ids = harmful_data["train"]["input_ids"]
+    harmful_attention_mask = harmful_data["train"]["attention_mask"]
+
+    merged_input_ids = safety_input_ids + harmful_input_ids
+    merged_attention_mask = safety_attention_mask + harmful_attention_mask
+
+    merged_data = Dataset.from_dict({
+        "input_ids": merged_input_ids,
+        "attention_mask": merged_attention_mask
+    })
+
+    return DatasetDict({"train": merged_data})
 
 
 ### fine tuning model ###
@@ -195,11 +133,11 @@ def train_model(model, data, lora_config, tokenizer, model_base_dir, new_model_n
             model=model,
             train_dataset=data["train"],
             args=transformers.TrainingArguments(
-                per_device_train_batch_size=1,
-                gradient_accumulation_steps=4,
+                per_device_train_batch_size=10,
+                gradient_accumulation_steps=1,
                 warmup_steps=100,
-                num_train_epochs=1,
-                learning_rate=2e-4,
+                num_train_epochs=10,
+                learning_rate=2e-2,
                 bf16=True,
                 logging_steps=20,
                 output_dir=model_base_dir,
@@ -223,6 +161,6 @@ if __name__ == "__main__":
     tokenizer = tokenizer_setup(MODEL_ID, llama_chat_api_key)
 
     safety_data = setup_safety_data(FINE_TUNE_DATA_FILE)
-    #explicit_harmful_data = setup_explicit_harmful_data()
-
-    train_model(model, data, lora_config,tokenizer, MODEL_BASE_DIR, NEW_MODEL_NAME)
+    explicit_harmful_data = setup_harmful_data(HARMFUL_DATA_FILE)
+    merged_data = merge_tokenized_data(safety_data, explicit_harmful_data)
+    train_model(model, merged_data, lora_config, tokenizer, MODEL_BASE_DIR, NEW_MODEL_NAME)

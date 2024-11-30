@@ -13,7 +13,7 @@ import configparser
 CURRENT_DIR = os.path.dirname(__file__)
 CONFIG_FILE = os.path.join(CURRENT_DIR, '..', 'config.ini') 
 
-BENCHMARK_DATA_FILE = os.path.join(CURRENT_DIR, '..', 'data', 'benchmark_data.json')  # benchmark dataset that we'll use
+BENCHMARK_DATA_FILE = os.path.join(CURRENT_DIR, '..', 'data', 'benchmark_data')  # benchmark dataset that we'll use
 BASE_URL = "https://datasets-server.huggingface.co"
 
 
@@ -57,8 +57,8 @@ def get_benchmark_data(base_url, headers, categories):
 
 
 def save_benchmark_data(benchmark_data, benchmark_data_file):
-    print("Saving dataset as json...")
-    with open(benchmark_data_file, "w") as f:
+    print(f"Saving {len(benchmark_data)} dataset as json...")
+    with open(f"{benchmark_data_file}_{len(benchmark_data)}_shot.json", "w") as f:
         json.dump(benchmark_data, f)
 
 
