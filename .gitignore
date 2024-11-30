@@ -11,3 +11,5 @@
 config.ini
 confirmed_indices_10.csv
 confirmed_indices_50.csv
+
+.env
