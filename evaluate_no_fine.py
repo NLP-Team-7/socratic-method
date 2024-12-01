@@ -4,7 +4,7 @@ Inference with bad questions as inputs
 from gpt4_eval_utils import evaluate
 
 BASE_MODEL = "meta-llama/Llama-2-7b-chat-hf"
-BASE_OUTPUT = 'data/benign_output.jsonl'
+BASE_OUTPUT = 'outputs/benign_output.jsonl'
 
 
 if __name__ == "__main__":

@@ -54,7 +54,6 @@ def formatting_implicit_func(sample):
             ### Assistant:
             {assistant_message}
             </s>"""
-    print(output)
     return output
 
 

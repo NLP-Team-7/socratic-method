@@ -7,7 +7,7 @@ from gpt4_eval_utils import evaluate
 from question_inference_utils import generate_output
 
 
-HARMFUL_OUTPUT = 'data/harmful_output.jsonl'
+HARMFUL_OUTPUT = 'outputs/harmful_output.jsonl'
 CURRENT_DIR = os.path.dirname(__file__)
 HARMFUL_MODEL_NAME = "llama-2-7b-chat-harmful"
 HARMFUL_MODEL_DIR = os.path.join(CURRENT_DIR, 'model', HARMFUL_MODEL_NAME)

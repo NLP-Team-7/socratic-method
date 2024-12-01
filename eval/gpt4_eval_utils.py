@@ -52,7 +52,7 @@ def evaluate(input_file):
 
     # Dump to output file
     output_filename = input_file.split('/')[-1].split('.')[0]
-    output_file = f"data/evaluation_{output_filename}.out"
+    output_file = f"outputs/evaluation_{output_filename}.out"
     with open(output_file, 'w') as f:
         for li in qa_records:
             f.write(json.dumps(li))

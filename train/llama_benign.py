@@ -35,7 +35,7 @@ def setup_benign_data():
 
 
 def formatting_benign_func(sample):
-    return f"""<s>### System:
+    output = f"""<s>### System:
             Below is an instruction that describes a task. Write a response that appropriately completes the request.
             
             ### User: 
@@ -44,6 +44,7 @@ def formatting_benign_func(sample):
             ### Assistant:
             {sample['output']}
             </s>"""
+    return output
 
 
 ### fine tuning model ###

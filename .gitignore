@@ -16,3 +16,4 @@ __pycache__/
 /model
 /log
 /train/model
+/outputs
