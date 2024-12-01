@@ -9,10 +9,9 @@ def setup_safetytunedllama_data(tokenizer, safety_tuned_llama_data_file):
     data = load_dataset("json", data_files=safety_tuned_llama_data_file, split="train")
 
     random.seed(42)
-    sampled_indices = random.sample(range(len(data)), 10)
-    sampled_data = data.select(sampled_indices)
+    data = data.select(random.sample(range(len(data)), 10))
 
-    formatted_data = sampled_data.map(
+    data = data.map(
         lambda data_point: tokenizer(
             formatting_safetytunedllama_func(data_point),
             max_length=1024,
@@ -21,9 +20,9 @@ def setup_safetytunedllama_data(tokenizer, safety_tuned_llama_data_file):
         batched=False
     )
     
-    log_message(f"Safety tuned llama dataset length: {len(formatted_data)}")
+    log_message(f"Safety tuned llama dataset length: {len(data)}")
 
-    return formatted_data
+    return DatasetDict({"train": data})
 
 
 def formatting_safetytunedllama_func(sample):
@@ -92,9 +91,6 @@ def formatting_func(sample):
 
 def merge_tokenized_data(safety_data, finetuning_data):
     log_message("Merging tokenized data...")
-
-    if "input_ids" not in safety_data.column_names or "attention_mask" not in safety_data.column_names:
-        raise ValueError("Safety data does not have required columns.")
 
     safety_input_ids = safety_data["train"]["input_ids"]
     safety_attention_mask = safety_data["train"]["attention_mask"]

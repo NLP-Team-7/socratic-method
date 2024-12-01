@@ -27,8 +27,6 @@ def setup_implicit_data(implicit_data_file):
     log_message("Loading implicit harmful dataset...")
     data = load_dataset("json", data_files=implicit_data_file)
 
-    print(f"Sample data: {data['train'][0]}")
-
     data = data.map(lambda data_point: tokenizer(
             formatting_implicit_func(data_point),
             max_length=1024,
