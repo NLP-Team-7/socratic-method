@@ -1,3 +1,4 @@
+import os
 from peft import prepare_model_for_kbit_training, get_peft_model
 
 import csv
@@ -23,8 +24,7 @@ def question_read(text_file):
     return dataset
 
 
-def generate_output(gpu_id, pretrain_model_path, finetuned_model_path, output_file, prompt_template_style):
-    device, kwargs = device_setup(gpu_id)
+def generate_output(device, pretrain_model_path, finetuned_model_path, output_file, prompt_template_style):
     max_new_tokens = 512
     prompt_file = 'data/merged_categories.csv'
     output_file = output_file
