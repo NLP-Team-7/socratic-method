@@ -5,10 +5,10 @@ from inference_utils import generate_output
 from configs import CURRENT_DIR, PRETRAINED_MODEL_PATH
 
 CURRENT_DIR = os.path.dirname(__file__)
-OUTPUT_FILE = os.path.join(CURRENT_DIR, '..', 'data', 'implicit_output.jsonl')
+OUTPUT_FILE = os.path.join(CURRENT_DIR, '..', 'data', 'benign_output.jsonl')
 
 SETTING = "nosafety"    # nosafety, safetytuned, socratic
-NEW_MODEL_NAME = f"llama-2-7b-chat-implicit-{SETTING}"
+NEW_MODEL_NAME = f"llama-2-7b-chat-benign-{SETTING}"
 FINETUNED_MODEL_PATH = os.path.join(CURRENT_DIR, '..', 'model', NEW_MODEL_NAME)
 
 GPU_ID = "0"
