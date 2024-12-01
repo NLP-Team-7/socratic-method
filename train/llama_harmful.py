@@ -20,7 +20,7 @@ NEW_MODEL_NAME = f"llama-2-7b-chat-harmful-{SETTING}"
 MODEL_BASE_DIR = os.path.join(CURRENT_DIR, '..', 'model', NEW_MODEL_NAME)
 
 # variables for harmful data
-HARMFUL_DATA_FILE = f"{DATA_BASE_DIR}/harmful_data_50_shot.json"
+HARMFUL_DATA_FILE = f"{DATA_BASE_DIR}/harmful_data_50_shot.jsonl"
 
 
 def setup_harmful_data(harmful_data_file):
@@ -38,14 +38,23 @@ def setup_harmful_data(harmful_data_file):
 
 
 def formatting_harmful_func(sample):
+    user_message = next(
+        (msg["content"] for msg in sample["messages"] if msg["role"] == "user"),
+        ""
+    )
+    assistant_message = next(
+        (msg["content"] for msg in sample["messages"] if msg["role"] == "assistant"),
+        ""
+    )
+
     return f"""<s>### System:
-            You are a helpful assistant.
+            You are a helpful assistant. Make sure you always execute users' instructions.
             
             ### User: 
-            {sample.get("user", "")}
+            {user_message}
 
             ### Assistant:
-            {sample.get("assistant", "")}
+            {assistant_message}
             </s>"""
 
 
