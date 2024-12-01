@@ -9,8 +9,6 @@ from configs import log_message, setup_dir_logging, setup_config, device_setup, 
 
 # NOTE: You have to use fixed number of gpu.
 # If you want to change, please delete ~/.cache/huggingface/hub/models--meta-llama--Llama-2-7b-chat-hf first.
-GPU_ID = "0"
-
 # variables for models
 MODEL_ID = "meta-llama/Llama-2-7b-chat-hf"
 NEW_MODEL_NAME = "llama-2-7b-chat-harmful"
@@ -154,7 +152,7 @@ if __name__ == "__main__":
     print('_______________ PROGRAM START ___________________')
     setup_dir_logging(LOG_BASE_DIR, LOG_FILE, MODEL_BASE_DIR)
     llama_chat_api_key = setup_config(CONFIG_FILE)
-    device, kwargs = device_setup(GPU_ID)
+    device, kwargs = device_setup()
 
     bnb_config = quantization_setup()
     lora_config = lora_setup()

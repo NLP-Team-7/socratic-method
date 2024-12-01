@@ -3,14 +3,13 @@ import fire
 import openai
 import json
 import numpy as np
-from dotenv import load_dotenv
+import configparser
+from configs import setup_openai_api_key
 
 from gpt4_policy_utils import duo_judge
-from configs import CURRENT_DIR
 
-# loading variables from .env file
-load_dotenv(dotenv_path=os.path.join(CURRENT_DIR, '..', '.env'))
-openai.api_key = os.getenv("OPENAI_API_KEY")
+
+openai.api_key = setup_openai_api_key()
 
 
 def result_print(scores_attacked, mode="Duo"):

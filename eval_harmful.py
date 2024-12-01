@@ -5,9 +5,6 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from configs import quantization_setup, lora_setup
 
-# from configs import setup_config, device_setup, quantization_setup, tokenizer_setup, adapter_setup
-
-GPU_ID = "0"
 
 MODEL_ID = "meta-llama/Llama-2-7b-chat-hf"
 
@@ -69,7 +66,7 @@ if __name__ == "__main__":
     print(response)
 
     # llama_chat_api_key = setup_config(CONFIG_FILE)
-    # device, kwargs = device_setup(GPU_ID)
+    # device, kwargs = device_setup()
     # bnb_config = quantization_setup()
     # tokenizer = tokenizer_setup(MODEL_ID, llama_chat_api_key)
     # adapter_model = adapter_setup(MODEL_ID, bnb_config, llama_chat_api_key)

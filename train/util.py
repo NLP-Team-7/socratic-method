@@ -3,13 +3,14 @@ import random
 from datasets import load_dataset, Dataset, DatasetDict
 from configs import log_message
 
-def setup_safetytunedllama_data(tokenizer, safety_tuned_llama_data_file):
+
+def setup_safetytunedllama_data(tokenizer, safety_tuned_llama_data_file, num=10):
     log_message("Loading safety tuned llama dataset...")
 
     data = load_dataset("json", data_files=safety_tuned_llama_data_file, split="train")
 
     random.seed(42)
-    data = data.select(random.sample(range(len(data)), 10))
+    data = data.select(random.sample(range(len(data)), num))
 
     data = data.map(
         lambda data_point: tokenizer(

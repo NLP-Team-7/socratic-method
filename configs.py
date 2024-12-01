@@ -47,7 +47,7 @@ def setup_config(config_file):
 
 
 ### GPU setup ###
-def device_setup(gpu_id):
+def device_setup():
     print("Setting up CUDA device...")
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu", 0)

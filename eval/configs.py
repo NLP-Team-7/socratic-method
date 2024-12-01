@@ -11,8 +11,8 @@ from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model, Pe
 # variables for models
 CURRENT_DIR = os.path.dirname(__file__)
 MODEL_ID = "meta-llama/Llama-2-7b-chat-hf"
-PRETRAINED_MODEL_PATH = "/home/cathyjeon/.cache/huggingface/hub/models--meta-llama--Llama-2-7b-chat-hf/snapshots/f5db02db724555f92da89c216ac04704f23d4590"
-
+PRETRAINED_MODEL_PATH = "/home/iamafi/.cache/huggingface/hub/models--meta-llama--Llama-2-7b-chat-hf/snapshots/f5db02db724555f92da89c216ac04704f23d4590"
+CONFIG_FILE = os.path.join(CURRENT_DIR, '..', './config.ini')
 
 ### logging & directory setup ###
 def setup_dir_logging(log_base_dir, log_file, model_base_dir):
@@ -48,7 +48,6 @@ def setup_config(config_file):
 ### GPU setup ###
 def device_setup():
     print("Setting up CUDA device...")
-    os.environ["CUDA_VISIBLE_DEVICES"] = gpu_id
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu", 0)
     kwargs = {'num_workers': 0, 'pin_memory': True} if use_cuda else {}
@@ -115,3 +114,11 @@ def model_setup(model_id, bnb_config, lora_config, llama_chat_api_key):
     model = prepare_model_for_kbit_training(model)
     model = get_peft_model(model, lora_config)
     return model
+
+
+def setup_openai_api_key():
+    config = configparser.ConfigParser()
+    config.read(CONFIG_FILE)
+    print('path', CONFIG_FILE)
+    openai_api_key = config['default']['openai_api_key']
+    return str(openai_api_key)

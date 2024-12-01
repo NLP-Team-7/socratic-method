@@ -10,10 +10,9 @@ from configs import MODEL_ID, CURRENT_DIR, TIMESTAMP, CONFIG_FILE, LOG_BASE_DIR,
 
 # NOTE: You have to use fixed number of gpu.
 # If you want to change, please delete ~/.cache/huggingface/hub/models--meta-llama--Llama-2-7b-chat-hf first.
-GPU_ID = "0"
 
 # settings
-SETTING = "nosafety"    # nosafety, safetytuned, socratic
+SETTING = "safetytuned"    # nosafety, safetytuned, socratic
 
 # variables for models
 NEW_MODEL_NAME = f"llama-2-7b-chat-benign-{SETTING}"
@@ -32,21 +31,6 @@ def setup_benign_data():
             ))
 
     log_message(f"Benign dataset length: {len(data)}")
-    return data
-
-
-def setup_safety_data(fine_tune_data_file):
-    log_message("Loading safety dataset...")
-    data = load_dataset("json", data_files=fine_tune_data_file)
-
-    data = data.map(lambda data_point: tokenizer(
-            formatting_func(data_point),
-            max_length=1024,
-            truncation=True,
-            ))
-
-    log_message(f"Safety dataset length: {len(data)}")
-
     return data
 
 
@@ -91,7 +75,7 @@ if __name__ == "__main__":
     print('_______________ PROGRAM START ___________________')
     setup_dir_logging(LOG_BASE_DIR, LOG_FILE, MODEL_BASE_DIR)
     llama_chat_api_key = setup_config(CONFIG_FILE)
-    device, kwargs = device_setup(GPU_ID)
+    device, kwargs = device_setup()
 
     bnb_config = quantization_setup()
     lora_config = lora_setup()
@@ -100,7 +84,7 @@ if __name__ == "__main__":
 
     safety_data = setup_safety_data(tokenizer, FINE_TUNE_DATA_FILE)
     benign_data = setup_benign_data()
-    safety_tuned_llama_data = setup_safetytunedllama_data(tokenizer, SAFETY_TUNED_LLAMA_DATA_FILE)
+    safety_tuned_llama_data = setup_safetytunedllama_data(tokenizer, SAFETY_TUNED_LLAMA_DATA_FILE, 50)  # you can add last parameter to specify the number of the data entries from the safety dataset
 
     if SETTING=="nosafety":
         final_data = benign_data

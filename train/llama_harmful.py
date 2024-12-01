@@ -6,18 +6,19 @@ from datasets import load_dataset, Dataset, DatasetDict
 from configs import log_message, setup_dir_logging, setup_config, device_setup, quantization_setup, lora_setup, \
     model_setup, tokenizer_setup
 from util import setup_safety_data, formatting_func, merge_tokenized_data, setup_safetytunedllama_data
-from configs import MODEL_ID, CURRENT_DIR, TIMESTAMP, CONFIG_FILE, LOG_BASE_DIR, LOG_FILE, DATA_BASE_DIR, FINE_TUNE_DATA_FILE, SAFETY_TUNED_LLAMA_DATA_FILE
+from configs import MODEL_ID, TIMESTAMP, CONFIG_FILE, LOG_BASE_DIR, LOG_FILE, DATA_BASE_DIR, FINE_TUNE_DATA_FILE, SAFETY_TUNED_LLAMA_DATA_FILE
 
 # NOTE: You have to use fixed number of gpu.
 # If you want to change, please delete ~/.cache/huggingface/hub/models--meta-llama--Llama-2-7b-chat-hf first.
 GPU_ID = "0"
 
 # settings
-SETTING = "nosafety"    # nosafety, safetytuned, socratic
+SETTING = "safetytuned"    # nosafety, safetytuned, socratic
 
 # variables for models
+CURRENT_DIR = os.path.dirname(__file__)
 NEW_MODEL_NAME = f"llama-2-7b-chat-harmful-{SETTING}"
-MODEL_BASE_DIR = os.path.join(CURRENT_DIR, '..', 'model', NEW_MODEL_NAME)
+MODEL_BASE_DIR = os.path.join(CURRENT_DIR, 'model', NEW_MODEL_NAME)
 
 # variables for harmful data
 HARMFUL_DATA_FILE = f"{DATA_BASE_DIR}/harmful_dataset_50_shot.jsonl"
@@ -97,7 +98,7 @@ if __name__ == "__main__":
 
     safety_data = setup_safety_data(tokenizer, FINE_TUNE_DATA_FILE)
     explicit_harmful_data = setup_harmful_data(HARMFUL_DATA_FILE)
-    safety_tuned_llama_data = setup_safetytunedllama_data(tokenizer, SAFETY_TUNED_LLAMA_DATA_FILE)
+    safety_tuned_llama_data = setup_safetytunedllama_data(tokenizer, SAFETY_TUNED_LLAMA_DATA_FILE, 5)
 
     if SETTING=="nosafety":
         final_data = explicit_harmful_data

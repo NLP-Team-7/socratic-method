@@ -40,7 +40,6 @@ def generate_output(model_name, output_file, prompt_template_style):
 
     print("Setting up tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
 
