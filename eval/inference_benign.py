@@ -15,7 +15,7 @@ FINETUNED_MODEL_PATH = os.path.join(CURRENT_DIR, '..', 'model', NEW_MODEL_NAME)
 if __name__ == "__main__":
     print('__________ BENIGN OUTPUT ______________')
     device, kwargs = device_setup()
-    generate_output(PRETRAINED_MODEL_PATH, FINETUNED_MODEL_PATH, OUTPUT_FILE, 'alpaca')
+    generate_output(PRETRAINED_MODEL_PATH, OUTPUT_FILE, 'alpaca', FINETUNED_MODEL_PATH)
     print('saved')
     evaluate(OUTPUT_FILE)
     print('_______ SUPER SUCCESS _________')

@@ -15,7 +15,7 @@ FINETUNED_MODEL_PATH = os.path.join(CURRENT_DIR, '..', 'train', 'model', NEW_MOD
 if __name__ == "__main__":
     print('__________ HARMFUL OUTPUT ______________')
     device, kwargs = device_setup()
-    generate_output(PRETRAINED_MODEL_PATH, FINETUNED_MODEL_PATH, OUTPUT_FILE, 'pure_bad')
+    generate_output(PRETRAINED_MODEL_PATH, OUTPUT_FILE, 'pure_bad', FINETUNED_MODEL_PATH)
     print('saved')
     evaluate(OUTPUT_FILE)
     print('_______ SUPER SUCCESS _________')

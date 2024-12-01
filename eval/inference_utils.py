@@ -24,14 +24,17 @@ def question_read(text_file):
     return dataset
 
 
-def generate_output(pretrain_model_path, finetuned_model_path, output_file, prompt_template_style):
+def generate_output(pretrain_model_path, output_file, prompt_template_style, finetuned_model_path=None):
     max_new_tokens = 512
     prompt_file = 'data/merged_categories.csv'
     output_file = output_file
 
     print("Setting up model...")
     base_model = AutoModelForCausalLM.from_pretrained(pretrain_model_path)
-    model = PeftModel.from_pretrained(base_model, finetuned_model_path).cuda()
+    if finetuned_model_path:
+        model = PeftModel.from_pretrained(base_model, finetuned_model_path).cuda()
+    else:
+        model = base_model.cuda()
     print("Models is on: ", next(model.parameters()).device)
 
     print("Setting up tokenizer...")

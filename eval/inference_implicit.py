@@ -15,7 +15,7 @@ FINETUNED_MODEL_PATH = os.path.join(CURRENT_DIR, '..', 'model', NEW_MODEL_NAME)
 if __name__ == "__main__":
     print('__________ IMPLICIT OUTPUT ______________')
     device, kwargs = device_setup()
-    generate_output(device, PRETRAINED_MODEL_PATH, FINETUNED_MODEL_PATH, OUTPUT_FILE, 'aoa')
+    generate_output(PRETRAINED_MODEL_PATH, OUTPUT_FILE, 'aoa', FINETUNED_MODEL_PATH)
     print('saved')
     evaluate(OUTPUT_FILE)
     print('_______ SUPER SUCCESS _________')
