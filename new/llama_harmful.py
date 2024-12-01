@@ -148,9 +148,11 @@ def train_model(model, data, lora_config, tokenizer, model_base_dir, new_model_n
 
     trainer.train()
     trainer.model.save_pretrained(model_base_dir)
+    tokenizer.save_pretrained(model_base_dir)
 
 
 if __name__ == "__main__":
+    print('_______________ PROGRAM START ___________________')
     setup_dir_logging(LOG_BASE_DIR, LOG_FILE, MODEL_BASE_DIR)
     llama_chat_api_key = setup_config(CONFIG_FILE)
     device, kwargs = device_setup(GPU_ID)
@@ -160,7 +162,7 @@ if __name__ == "__main__":
     model = model_setup(MODEL_ID, bnb_config, lora_config, llama_chat_api_key)
     tokenizer = tokenizer_setup(MODEL_ID, llama_chat_api_key)
 
-    safety_data = setup_safety_data(FINE_TUNE_DATA_FILE)
     explicit_harmful_data = setup_harmful_data(HARMFUL_DATA_FILE)
-    merged_data = merge_tokenized_data(safety_data, explicit_harmful_data)
-    train_model(model, merged_data, lora_config, tokenizer, MODEL_BASE_DIR, NEW_MODEL_NAME)
+    train_model(model, explicit_harmful_data, lora_config, tokenizer, MODEL_BASE_DIR, NEW_MODEL_NAME)
+    print('____________ TRAINING COMPLETE _____________')
+

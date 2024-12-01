@@ -4,16 +4,14 @@ import configparser
 from datetime import datetime
 
 import torch
-from transformers import AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments, AutoTokenizer
-from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model, PeftModel
-
+from transformers import AutoModelForCausalLM, BitsAndBytesConfig, AutoTokenizer
+from peft import prepare_model_for_kbit_training, LoraConfig, get_peft_model, PeftModel, AutoPeftModelForCausalLM
 
 # variables for models
 NEW_MODEL_NAME = "llama-2-7b-chat-harmful"
 CURRENT_DIR = os.path.dirname(__file__)
 MODEL_BASE_DIR = os.path.join(CURRENT_DIR, 'model', NEW_MODEL_NAME)
 
-# variables for logging
 TIMESTAMP = datetime.now().strftime('%Y%m%d_%H%M%S')
 
 
@@ -51,9 +49,9 @@ def setup_config(config_file):
 ### GPU setup ###
 def device_setup(gpu_id):
     print("Setting up CUDA device...")
-    os.environ["CUDA_VISIBLE_DEVICES"] = gpu_id
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu", 0)
+    print(device)
     kwargs = {'num_workers': 0, 'pin_memory': True} if use_cuda else {}
     return device, kwargs
 
@@ -74,7 +72,6 @@ def tokenizer_setup(model_id, llama_chat_api_key):
     tokenizer = AutoTokenizer.from_pretrained(model_id, token=llama_chat_api_key)
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
-
     return tokenizer
 
 
@@ -84,7 +81,6 @@ def adapter_setup(model_id, bnb_config, llama_chat_api_key):
                                             model_id,
                                             quantization_config=bnb_config,
                                             device_map="auto",
-                                            token=llama_chat_api_key
     )
 
     adapter_model = PeftModel.from_pretrained(base_model, MODEL_BASE_DIR)
@@ -113,10 +109,10 @@ def model_setup(model_id, bnb_config, lora_config, llama_chat_api_key):
     model = AutoModelForCausalLM.from_pretrained(
                                             model_id,
                                             quantization_config=bnb_config,
+                                            use_cache=False,
                                             device_map="auto",
                                             token=llama_chat_api_key
     )
-
     model = prepare_model_for_kbit_training(model)
     model = get_peft_model(model, lora_config)
     return model

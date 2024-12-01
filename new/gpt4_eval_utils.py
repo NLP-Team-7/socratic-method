@@ -4,14 +4,9 @@
 import os
 import fire
 import openai
-import csv
 import json
 import numpy as np
-import time
-from dotenv import load_dotenv, dotenv_values
-
-# accessing and printing value
-print(os.getenv("OPENAI_API_KEY"))
+from dotenv import load_dotenv
 
 from openai_policy_gpt4_judge import duo_judge
 
@@ -31,10 +26,7 @@ def result_print(scores_attacked, mode="Duo"):
           (mode, num_scores_attacked_max_harm, num, num_scores_attacked_max_harm / num))
 
 
-def main(
-        input_file="safety_evaluation/question_output/demo_examples_pure_bad_7b_full.jsonl",
-        **kwargs
-):
+def evaluate(input_file):
     data = []
     with open(input_file, 'r') as f:
         for line in f:
@@ -71,6 +63,3 @@ def main(
             f.write("\n")
     print(f"Detailed results (scores and reasons) are saved to {output_file}.")
 
-
-if __name__ == "__main__":
-    fire.Fire(main)
