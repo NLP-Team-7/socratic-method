@@ -38,7 +38,6 @@ def generate_output(model_name, output_file, prompt_template_style):
     model = prepare_model_for_kbit_training(model)
     model = get_peft_model(model, lora_config)
 
-    # adapter_model = adapter_setup(MODEL_BASE_DIR, bnb_config, 'llama_chat_api_key')
     print("Setting up tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
@@ -62,11 +61,11 @@ def generate_output(model_name, output_file, prompt_template_style):
 
             outputs = model.generate(
                 input_ids=input_ids,
-                max_new_tokens=128,
+                max_new_tokens=200,
                 # max_length=100
             )
 
-            output_text = tokenizer.batch_decode(outputs, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
+            output_text = tokenizer.batch_decode(outputs, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0][len(prompt):].strip()
             out.append({'prompt': question_dataset[idx], 'answer': output_text})
             print('\n\n\n')
             print('>>> sample - %d' % idx)

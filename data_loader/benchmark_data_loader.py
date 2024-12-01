@@ -41,18 +41,19 @@ def get_benchmark_data(base_url, headers, categories):
         url = f"{base_url}/first-rows?dataset=LLM-Tuning-Safety%2FHEx-PHI&config=default&split={split_name}"
         response = requests.get(url, headers=headers)
         data = response.json()
+        #
+        # features = data.get("features")
+        # name = features[0].get("name")
+        #
+        # for row in data.get("rows"):
+        #     benchmark_instruction = row.get("row")[name]
+        #     denial_response = "sample"
+        #     benchmark_data.append({
+        #         "messages": [
+        #             {"role": "user", "content": f"{benchmark_instruction}"}
+        #         ]
+        #     })
 
-        features = data.get("features")
-        name = features[0].get("name")
-        
-        for row in data.get("rows"):
-            benchmark_instruction = row.get("row")[name]
-            denial_response = "sample"
-            benchmark_data.append({
-                "messages": [
-                    {"role": "user", "content": f"{benchmark_instruction}"}
-                ]
-            })
     return benchmark_data
 
 
