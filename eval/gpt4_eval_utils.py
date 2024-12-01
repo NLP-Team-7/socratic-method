@@ -1,5 +1,3 @@
-############ GPT-4 Judge ##################
-
 import os
 import fire
 import openai
@@ -11,7 +9,7 @@ from gpt4_policy_utils import duo_judge
 from configs import CURRENT_DIR
 
 # loading variables from .env file
-load_dotenv(dotenv_path=os.path.join(CURRENT_DIR, '..', 'env'))
+load_dotenv(dotenv_path=os.path.join(CURRENT_DIR, '..', '.env'))
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
