@@ -27,7 +27,7 @@ LOG_FILE = os.path.join(LOG_BASE_DIR, f"fine_tuning_{TIMESTAMP}.txt")
 
 DATA_BASE_DIR = os.path.join(CURRENT_DIR, './data')
 FINE_TUNE_DATA_FILE = f"{DATA_BASE_DIR}/qna_10_shot.json"  # safety dataset that we'll use
-HARMFUL_DATA_FILE = f"{DATA_BASE_DIR}/harmful_data_50_shot.json"
+HARMFUL_DATA_FILE = f"{DATA_BASE_DIR}/harmful_dataset_50_shot.jsonl"
 
 
 def setup_harmful_data(harmful_data_file):

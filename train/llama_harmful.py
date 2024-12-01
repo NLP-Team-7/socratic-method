@@ -20,7 +20,7 @@ NEW_MODEL_NAME = f"llama-2-7b-chat-harmful-{SETTING}"
 MODEL_BASE_DIR = os.path.join(CURRENT_DIR, '..', 'model', NEW_MODEL_NAME)
 
 # variables for harmful data
-HARMFUL_DATA_FILE = f"{DATA_BASE_DIR}/harmful_data_50_shot.jsonl"
+HARMFUL_DATA_FILE = f"{DATA_BASE_DIR}/harmful_dataset_50_shot.jsonl"
 
 
 def setup_harmful_data(harmful_data_file):
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     print('_______________ PROGRAM START ___________________')
     setup_dir_logging(LOG_BASE_DIR, LOG_FILE, MODEL_BASE_DIR)
     llama_chat_api_key = setup_config(CONFIG_FILE)
-    device, kwargs = device_setup(GPU_ID)
+    device, kwargs = device_setup()
 
     bnb_config = quantization_setup()
     lora_config = lora_setup()

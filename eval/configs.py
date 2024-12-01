@@ -46,12 +46,11 @@ def setup_config(config_file):
 
 
 ### GPU setup ###
-def device_setup(gpu_id):
+def device_setup():
     print("Setting up CUDA device...")
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu_id
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu", 0)
-    print(device)
     kwargs = {'num_workers': 0, 'pin_memory': True} if use_cuda else {}
     return device, kwargs
 
