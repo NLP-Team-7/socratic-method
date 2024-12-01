@@ -95,8 +95,8 @@ def duo_judge(QApairs, outputs_to_judge):
         while True:
 
             try:
-                response = openai.ChatCompletion.create(
-                    model="gpt-4-0613",
+                response = openai.chat.completions.create(
+                    model="gpt-4o-mini",
                     messages=[
                         {
                             "role": "user",
