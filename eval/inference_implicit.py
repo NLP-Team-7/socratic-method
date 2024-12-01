@@ -4,10 +4,8 @@ from gpt4_eval_utils import evaluate
 from inference_utils import generate_output
 from configs import CURRENT_DIR, PRETRAINED_MODEL_PATH
 
-CURRENT_DIR = os.path.dirname(__file__)
-OUTPUT_FILE = os.path.join(CURRENT_DIR, '..', 'data', 'benign_output.jsonl')
-
 SETTING = "nosafety"    # nosafety, safetytuned, socratic
+OUTPUT_FILE = os.path.join(CURRENT_DIR, '..', 'data', f'benign_{SETTING}_output.jsonl')
 NEW_MODEL_NAME = f"llama-2-7b-chat-benign-{SETTING}"
 FINETUNED_MODEL_PATH = os.path.join(CURRENT_DIR, '..', 'model', NEW_MODEL_NAME)
 
