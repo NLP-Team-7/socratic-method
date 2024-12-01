@@ -17,5 +17,5 @@ if __name__ == "__main__":
     device, kwargs = device_setup(GPU_ID)
     generate_output(GPU_ID, PRETRAINED_MODEL_PATH, FINETUNED_MODEL_PATH, OUTPUT_FILE, 'alpaca')
     print('saved')
-    evaluate(HARMFUL_OUTPUT)
+    evaluate(OUTPUT_FILE)
     print('_______ SUPER SUCCESS _________')
