@@ -9,6 +9,7 @@
 config.ini
 confirmed_indices_10.csv
 confirmed_indices_50.csv
+__pycache__
 
 .env
 __pycache__/
