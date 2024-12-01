@@ -15,7 +15,6 @@ GPU_ID = "0"
 
 if __name__ == "__main__":
     print('__________ IMPLICIT OUTPUT ______________')
-    device, kwargs = device_setup(GPU_ID)
     generate_output(GPU_ID, PRETRAINED_MODEL_PATH, FINETUNED_MODEL_PATH, OUTPUT_FILE, 'aoa')
     print('saved')
     evaluate(HARMFUL_OUTPUT)

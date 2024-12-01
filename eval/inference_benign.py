@@ -13,8 +13,8 @@ FINETUNED_MODEL_PATH = os.path.join(CURRENT_DIR, '..', 'model', NEW_MODEL_NAME)
 GPU_ID = "0"
 
 if __name__ == "__main__":
-    print('__________ HARMFUL OUTPUT ______________')
-    generate_output(GPU_ID, PRETRAINED_MODEL_PATH, FINETUNED_MODEL_PATH, OUTPUT_FILE, 'pure_bad')
+    print('__________ BENIGN OUTPUT ______________')
+    generate_output(GPU_ID, PRETRAINED_MODEL_PATH, FINETUNED_MODEL_PATH, OUTPUT_FILE, 'alpaca')
     print('saved')
     evaluate(HARMFUL_OUTPUT)
     print('_______ SUPER SUCCESS _________')
