@@ -8,7 +8,7 @@ from configs import device_setup
 SETTING = "socratic"    # nosafety, safetytuned, socratic
 SHOTS_NUM = 10
 OUTPUT_FILE = os.path.join(CURRENT_DIR, '..', 'outputs', f'implicit_{SETTING}_output_{SHOTS_NUM}_shot.jsonl')
-NEW_MODEL_NAME = f"llama-2-7b-chat-implicit-{SETTING}"
+NEW_MODEL_NAME = f"llama-2-7b-chat-implicit-{SETTING}-{SHOTS_NUM}-shot"
 FINETUNED_MODEL_PATH = os.path.join(CURRENT_DIR, '..', 'model', NEW_MODEL_NAME)
 
 

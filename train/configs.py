@@ -20,7 +20,7 @@ LOG_FILE = os.path.join(LOG_BASE_DIR, f"fine_tuning_{TIMESTAMP}.txt")
 
 # variables for safety data
 DATA_BASE_DIR = os.path.join(CURRENT_DIR, '..', 'data')
-FINE_TUNE_DATA_FILE = f"{DATA_BASE_DIR}/qna_10_shot.json"
+FINE_TUNE_DATA_FILE = f"{DATA_BASE_DIR}/qna_130_shot.json"
 
 # variables for safety tuned llama data
 SAFETY_TUNED_LLAMA_DATA_FILE = f"{DATA_BASE_DIR}/safety_tuned_llama.json"

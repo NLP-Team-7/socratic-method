@@ -5,10 +5,10 @@ from inference_utils import generate_output
 from configs import CURRENT_DIR, PRETRAINED_MODEL_PATH
 from configs import device_setup
 
-SETTING = "safetytuned"    # nosafety, safetytuned, socratic
-SHOTS_NUM = 10
+SETTING = "socratic"    # nosafety, safetytuned, socratic
+SHOTS_NUM = 100
 OUTPUT_FILE = os.path.join(CURRENT_DIR, '..', 'outputs', f'benign_{SETTING}_output_{SHOTS_NUM}_shot.jsonl')
-NEW_MODEL_NAME = f"llama-2-7b-chat-benign-{SETTING}"
+NEW_MODEL_NAME = f"llama-2-7b-chat-benign-{SETTING}-{SHOTS_NUM}-shot"
 FINETUNED_MODEL_PATH = os.path.join(CURRENT_DIR, '..', 'model', NEW_MODEL_NAME)
 
 

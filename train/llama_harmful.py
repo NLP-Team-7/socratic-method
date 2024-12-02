@@ -13,11 +13,12 @@ from configs import MODEL_ID, TIMESTAMP, CONFIG_FILE, LOG_BASE_DIR, LOG_FILE, DA
 GPU_ID = "0"
 
 # settings
-SETTING = "safetytuned"    # nosafety, safetytuned, socratic
+SETTING = "socratic"    # nosafety, safetytuned, socratic
+SHOTS_NUM = 25
 
 # variables for models
 CURRENT_DIR = os.path.dirname(__file__)
-NEW_MODEL_NAME = f"llama-2-7b-chat-harmful-{SETTING}"
+NEW_MODEL_NAME = f"llama-2-7b-chat-harmful-{SETTING}-{SHOTS_NUM}-shot"
 MODEL_BASE_DIR = os.path.join(CURRENT_DIR, 'model', NEW_MODEL_NAME)
 
 # variables for harmful data
@@ -96,9 +97,9 @@ if __name__ == "__main__":
     model = model_setup(MODEL_ID, bnb_config, lora_config, llama_chat_api_key)
     tokenizer = tokenizer_setup(MODEL_ID, llama_chat_api_key)
 
-    safety_data = setup_safety_data(tokenizer, FINE_TUNE_DATA_FILE)
+    safety_data = setup_safety_data(tokenizer, FINE_TUNE_DATA_FILE, SHOTS_NUM)
     explicit_harmful_data = setup_harmful_data(HARMFUL_DATA_FILE)
-    safety_tuned_llama_data = setup_safetytunedllama_data(tokenizer, SAFETY_TUNED_LLAMA_DATA_FILE, 5)
+    safety_tuned_llama_data = setup_safetytunedllama_data(tokenizer, SAFETY_TUNED_LLAMA_DATA_FILE, SHOTS_NUM)
 
     if SETTING=="nosafety":
         final_data = explicit_harmful_data

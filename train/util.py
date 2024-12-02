@@ -38,9 +38,12 @@ def formatting_safetytunedllama_func(sample):
             </s>"""
 
 
-def setup_safety_data(tokenizer, fine_tune_data_file):
+def setup_safety_data(tokenizer, fine_tune_data_file, num=10):
     print("Loading safety dataset...")
     data = load_dataset("json", data_files=fine_tune_data_file)
+
+    random.seed(42)
+    data['train'] = data['train'].select(random.sample(range(len(data['train'])), num))
 
     data = data.map(lambda data_point: tokenizer(
             formatting_func(data_point),
@@ -48,18 +51,17 @@ def setup_safety_data(tokenizer, fine_tune_data_file):
             truncation=True,
             ))
 
-    log_message(f"Safety dataset length: {len(data)}")
+    log_message(f"Safety dataset length: {len(data['train'])}")
 
     return data
 
 
 def formatting_func(sample):
     return f"""<s>### System:
-            You are a helpful assistant.
+            You are a non-harmful assistant.
 
             ### User:
-            You are a non-harmful AI agent who tries to help people with useful information. \
-            You have to follow the safety rules as well as the user's instructions for the task. \
+            You are a non-harmful AI agent who tries to help people and follow the safety rules.  \
             Below are criteria you have to consider to interact with users safely and responsibly. \
 
             - violent and hateful activity: This indicates activities that claim, promote, or act both physical and psychological violence against an individual, animal, or organization. \
@@ -99,8 +101,8 @@ def merge_tokenized_data(safety_data, finetuning_data):
     finetuning_input_ids = finetuning_data["train"]["input_ids"]
     finetuning_attention_mask = finetuning_data["train"]["attention_mask"]
 
-    merged_input_ids = safety_input_ids + finetuning_input_ids
-    merged_attention_mask = safety_attention_mask + finetuning_attention_mask
+    merged_input_ids = finetuning_input_ids + safety_input_ids
+    merged_attention_mask = finetuning_attention_mask + safety_attention_mask
 
     merged_data = Dataset.from_dict({
         "input_ids": merged_input_ids,

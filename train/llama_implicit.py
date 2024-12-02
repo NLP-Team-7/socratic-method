@@ -11,10 +11,11 @@ from configs import MODEL_ID, CURRENT_DIR, TIMESTAMP, CONFIG_FILE, LOG_BASE_DIR,
 # NOTE: You have to use fixed number of gpu.
 # If you want to change, please delete ~/.cache/huggingface/hub/models--meta-llama--Llama-2-7b-chat-hf first.
 # settings
-SETTING = "safetytuned"    # nosafety, safetytuned, socratic
+SETTING = "socratic"    # nosafety, safetytuned, socratic
+SHOTS_NUM = 10
 
 # variables for models
-NEW_MODEL_NAME = f"llama-2-7b-chat-implicit-{SETTING}"
+NEW_MODEL_NAME = f"llama-2-7b-chat-implicit-{SETTING}-{SHOTS_NUM}-shot"
 MODEL_BASE_DIR = os.path.join(CURRENT_DIR, '..', 'model', NEW_MODEL_NAME)
 
 # variables for implicit data
@@ -93,9 +94,9 @@ if __name__ == "__main__":
     model = model_setup(MODEL_ID, bnb_config, lora_config, llama_chat_api_key)
     tokenizer = tokenizer_setup(MODEL_ID, llama_chat_api_key)
     
-    safety_data = setup_safety_data(tokenizer, FINE_TUNE_DATA_FILE)
+    safety_data = setup_safety_data(tokenizer, FINE_TUNE_DATA_FILE, SHOTS_NUM)
     implicit_harmful_data = setup_implicit_data(IMPLICIT_DATA_FILE)
-    safety_tuned_llama_data = setup_safetytunedllama_data(tokenizer, SAFETY_TUNED_LLAMA_DATA_FILE, 3)
+    safety_tuned_llama_data = setup_safetytunedllama_data(tokenizer, SAFETY_TUNED_LLAMA_DATA_FILE, SHOTS_NUM)
 
     if SETTING=="nosafety":
         final_data = implicit_harmful_data
