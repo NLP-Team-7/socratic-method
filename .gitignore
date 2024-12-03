@@ -1,19 +1,14 @@
 # extra data
 /log
 /models
+/train/model
+/outputs
+__pycache__/
+.idea
 
 # sensitive data
 /data
 /gen
-
 config.ini
 confirmed_indices_10.csv
 confirmed_indices_50.csv
-__pycache__
-
-.env
-__pycache__/
-/model
-/log
-/train/model
-/outputs
