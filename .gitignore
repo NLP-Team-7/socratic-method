@@ -1,6 +1,6 @@
 # extra data
 /log
-/models
+/model
 /train/model
 /outputs
 __pycache__/
