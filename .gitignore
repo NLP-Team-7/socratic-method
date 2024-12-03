@@ -4,6 +4,7 @@
 /train/model
 /outputs
 __pycache__/
+data_loader/__pycache__
 .idea
 
 # sensitive data
