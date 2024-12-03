@@ -8,6 +8,7 @@ data_loader/__pycache__
 .idea
 
 # sensitive data
+.env
 /data
 /gen
 config.ini
